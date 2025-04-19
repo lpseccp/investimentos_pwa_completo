@@ -1,0 +1,15 @@
+{
+  "short_name": "Investimentos",
+  "name": "Carteira de Investimentos",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#317EFB",
+  "background_color": "#ffffff"
+}

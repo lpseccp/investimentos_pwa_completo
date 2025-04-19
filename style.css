@@ -1,0 +1,37 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s;
+}
+
+:root {
+    --bg: #ffffff;
+    --text: #000000;
+}
+
+.dark-mode {
+    --bg: #121212;
+    --text: #ffffff;
+}
+
+.container {
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+}
+
+form input {
+    display: block;
+    margin: 5px 0;
+    padding: 10px;
+    width: 100%;
+}
+
+button {
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+}

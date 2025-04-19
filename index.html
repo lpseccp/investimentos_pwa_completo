@@ -1,47 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#317EFB"/>
-    <link rel="manifest" href="manifest.json">
-    <title>Carteira de Investimentos</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carteira de Investimentos</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Carteira de Investimentos</h1>
-        <div class="theme-toggle">
-            <button id="toggleTheme">Alternar Tema</button>
-        </div>
-        <form id="investmentForm">
-            <input type="text" id="ativo" placeholder="Nome do Ativo" required>
-            <input type="number" id="preco" placeholder="Preço Atual" required>
-            <input type="number" id="nota" placeholder="Nota de Importância (1-10)" required>
-            <input type="number" id="saldo" placeholder="Saldo Atual (R$)" required>
-            <button type="submit">Adicionar</button>
-        </form>
-        <div id="filters">
-            <button onclick="filtrarPor('nota')">Ordenar por Nota</button>
-            <button onclick="filtrarPor('saldo')">Ordenar por Saldo</button>
-            <button onclick="filtrarPor('diferenca')">Ordenar por Diferença</button>
-        </div>
-        <div id="listaAtivos"></div>
-        <div>
-            <canvas id="graficoPizza" width="400" height="400"></canvas>
-            <canvas id="graficoBarra" width="400" height="400"></canvas>
-        </div>
-        <div id="backup">
-            <button onclick="copiarBackup()">Copiar JSON</button>
-            <button onclick="restaurarBackup()">Colar JSON</button>
-            <button onclick="exportarCSV()">Exportar CSV</button>
-            <input type="file" accept=".csv" onchange="importarCSV(event)">
-            <button onclick="compartilharCarteira()">Compartilhar</button>
-            <div id="qrCode"></div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-    <script src="app.js"></script>
+  <div class="container">
+    <h1>Carteira de Investimentos</h1>
+    <form id="investment-form">
+      <input type="text" id="ativo" placeholder="Nome do Ativo" required />
+      <input type="number" id="preco" placeholder="Preço Atual" required />
+      <input type="number" id="nota" placeholder="Nota de Importância" required />
+      <input type="number" id="saldo" placeholder="Saldo Atual (R$)" required />
+      <button type="submit">Adicionar</button>
+    </form>
+    <div id="ativos-list"></div>
+    <canvas id="graficoPizza" width="400" height="400"></canvas>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

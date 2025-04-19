@@ -1,144 +1,69 @@
-let ativos = JSON.parse(localStorage.getItem('carteira')) || [];
+const form = document.getElementById('investment-form');
+const ativosList = document.getElementById('ativos-list');
+const graficoCtx = document.getElementById('graficoPizza').getContext('2d');
 
-function salvarCarteira() {
-    localStorage.setItem('carteira', JSON.stringify(ativos));
+let ativos = JSON.parse(localStorage.getItem('ativos')) || [];
+
+function salvarDados() {
+  localStorage.setItem('ativos', JSON.stringify(ativos));
 }
 
-function calcularCarteira() {
-    const totalNota = ativos.reduce((acc, a) => acc + a.nota, 0);
-    return ativos.map(a => {
-        a.percentualIdeal = (a.nota / totalNota) * 100;
-        a.valorIdeal = a.percentualIdeal * a.totalCarteira / 100;
-        a.diferenca = a.valorIdeal - a.saldo;
-        return a;
-    });
+function calcularCarteiraIdeal() {
+  const totalNotas = ativos.reduce((soma, ativo) => soma + ativo.nota, 0);
+  return ativos.map(ativo => {
+    const ideal = (ativo.nota / totalNotas) * ativos.reduce((s, a) => s + a.saldo, 0);
+    return { ...ativo, ideal: ideal.toFixed(2) };
+  });
 }
 
-function atualizarInterface() {
-    document.getElementById("listaAtivos").innerHTML = '';
-    ativos = calcularCarteira();
-    ativos.forEach((a, i) => {
-        document.getElementById("listaAtivos").innerHTML += `
-            <div>
-                <strong>${a.ativo}</strong> - Saldo: R$${a.saldo.toFixed(2)} | Ideal: R$${a.valorIdeal.toFixed(2)} | Diferença: R$${a.diferenca.toFixed(2)}
-                <button onclick="removerAtivo(${i})">Remover</button>
-            </div>`;
-    });
-    gerarGraficos();
-    salvarCarteira();
+function renderAtivos() {
+  ativosList.innerHTML = '';
+  const atualizados = calcularCarteiraIdeal();
+  atualizados.forEach((ativo, index) => {
+    const div = document.createElement('div');
+    div.className = 'ativo';
+    div.innerHTML = `
+      <strong>${ativo.nome}</strong> - R$ ${ativo.saldo} | Nota: ${ativo.nota} | Ideal: R$ ${ativo.ideal}
+      <button onclick="removerAtivo(${index})">Remover</button>
+    `;
+    ativosList.appendChild(div);
+  });
+  renderGrafico(atualizados);
 }
 
-document.getElementById("investmentForm").onsubmit = function(e) {
-    e.preventDefault();
-    const ativo = document.getElementById("ativo").value;
-    const preco = parseFloat(document.getElementById("preco").value);
-    const nota = parseInt(document.getElementById("nota").value);
-    const saldo = parseFloat(document.getElementById("saldo").value);
-    ativos.push({ ativo, preco, nota, saldo, totalCarteira: totalCarteiraAtual() });
-    atualizarInterface();
-    this.reset();
-};
+function renderGrafico(dados) {
+  const chartData = {
+    labels: dados.map(a => a.nome),
+    datasets: [{
+      label: 'Distribuição atual',
+      data: dados.map(a => a.saldo),
+      backgroundColor: ['#f39c12', '#2980b9', '#27ae60', '#8e44ad', '#e74c3c']
+    }]
+  };
+
+  if (window.pizzaChart) window.pizzaChart.destroy();
+  window.pizzaChart = new Chart(graficoCtx, {
+    type: 'pie',
+    data: chartData
+  });
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const nome = document.getElementById('ativo').value;
+  const preco = parseFloat(document.getElementById('preco').value);
+  const nota = parseFloat(document.getElementById('nota').value);
+  const saldo = parseFloat(document.getElementById('saldo').value);
+  ativos.push({ nome, preco, nota, saldo });
+  salvarDados();
+  renderAtivos();
+  form.reset();
+});
 
 function removerAtivo(index) {
-    ativos.splice(index, 1);
-    atualizarInterface();
+  ativos.splice(index, 1);
+  salvarDados();
+  renderAtivos();
 }
 
-function totalCarteiraAtual() {
-    return ativos.reduce((acc, a) => acc + a.saldo, 0);
-}
-
-function gerarGraficos() {
-    const labels = ativos.map(a => a.ativo);
-    const dados = ativos.map(a => a.saldo);
-    const metas = ativos.map(a => a.valorIdeal);
-
-    new Chart(document.getElementById('graficoPizza'), {
-        type: 'pie',
-        data: { labels, datasets: [{ label: 'Distribuição', data: dados }] },
-        options: {}
-    });
-
-    new Chart(document.getElementById('graficoBarra'), {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [
-                { label: 'Atual', data: dados, backgroundColor: 'blue' },
-                { label: 'Ideal', data: metas, backgroundColor: 'green' }
-            ]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
-}
-
-function filtrarPor(campo) {
-    ativos.sort((a, b) => b[campo] - a[campo]);
-    atualizarInterface();
-}
-
-function copiarBackup() {
-    navigator.clipboard.writeText(JSON.stringify(ativos)).then(() => alert('Copiado!'));
-}
-
-function restaurarBackup() {
-    const json = prompt("Cole o JSON da carteira:");
-    if (json) {
-        try {
-            ativos = JSON.parse(json);
-            atualizarInterface();
-        } catch {
-            alert("Erro ao importar.");
-        }
-    }
-}
-
-function exportarCSV() {
-    let csv = "Ativo,Preço,Nota,Saldo\n";
-    ativos.forEach(a => {
-        csv += `${a.ativo},${a.preco},${a.nota},${a.saldo}\n`;
-    });
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "carteira.csv";
-    a.click();
-}
-
-function importarCSV(event) {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-        const linhas = reader.result.split("\n").slice(1);
-        linhas.forEach(l => {
-            const [ativo, preco, nota, saldo] = l.split(",");
-            if (ativo) ativos.push({ ativo, preco: +preco, nota: +nota, saldo: +saldo, totalCarteira: totalCarteiraAtual() });
-        });
-        atualizarInterface();
-    };
-    reader.readAsText(file);
-}
-
-function compartilharCarteira() {
-    const dados = encodeURIComponent(JSON.stringify(ativos));
-    const url = `${location.origin}${location.pathname}?carteira=${dados}`;
-    QRCode.toCanvas(document.getElementById('qrCode'), url, error => {
-        if (error) console.error(error);
-    });
-}
-
-document.getElementById("toggleTheme").onclick = () => {
-    document.body.classList.toggle("dark-mode");
-};
-
-window.onload = () => {
-    const params = new URLSearchParams(location.search);
-    const dados = params.get("carteira");
-    if (dados) {
-        try {
-            ativos = JSON.parse(decodeURIComponent(dados));
-        } catch {}
-    }
-    atualizarInterface();
-};
+renderAtivos();
